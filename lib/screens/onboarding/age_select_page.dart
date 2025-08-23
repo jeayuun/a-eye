@@ -1,6 +1,8 @@
+import 'package:a_eye/database/app_database.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
 
 class AgeSelectPage extends StatefulWidget {
   final void Function(String ageGroup) onNext;
@@ -35,7 +37,6 @@ class _AgeSelectPageState extends State<AgeSelectPage> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        // Use border instead of gradient for the highlight effect
         border: isSelected
             ? Border.all(
           color: const Color(0xFF5244F3),
@@ -45,8 +46,8 @@ class _AgeSelectPageState extends State<AgeSelectPage> {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white10, // Semi-transparent color
-          borderRadius: BorderRadius.circular(14), // Match outer radius
+          color: Colors.white10,
+          borderRadius: BorderRadius.circular(14),
         ),
         child: RadioListTile<String>(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20),
@@ -63,19 +64,15 @@ class _AgeSelectPageState extends State<AgeSelectPage> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments as Map?;
-    final userName = args?['name'] ?? 'Guest';
-    final gender = args?['gender'] ?? 'Unknown';
+    final database = Provider.of<AppDatabase>(context, listen: false);
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Glowing circles
+          // Background UI elements...
           Positioned(
             top: -500,
             right: -500,
@@ -142,8 +139,7 @@ class _AgeSelectPageState extends State<AgeSelectPage> {
               ],
             ),
           ),
-
-          // Step indicator
+          // Step indicator and other UI...
           Positioned(
             top: 60,
             left: 0,
@@ -190,15 +186,15 @@ class _AgeSelectPageState extends State<AgeSelectPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-
                 // previous button
                 OutlinedButton(
                   onPressed: () {
-                      widget.onBack(''); // Optional fallback
+                    widget.onBack(''); // Optional fallback
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF5244F3), width: 2),
-                    padding: const EdgeInsets.symmetric(horizontal: 45, vertical: 16),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 45, vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -215,12 +211,16 @@ class _AgeSelectPageState extends State<AgeSelectPage> {
 
                 // next button
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (selectedAgeGroup != null) {
-                      Hive.box('userBox').put('name', userName);
-                      Hive.box('userBox').put('gender', gender);
-                      Hive.box('userBox').put('ageGroup', selectedAgeGroup);
-                      widget.onNext(selectedAgeGroup!); // Save current age
+                      final user = await database.getLatestUser();
+                      if (user != null) {
+                        final updatedUser = user.toCompanion(false).copyWith(
+                          ageGroup: drift.Value(selectedAgeGroup!),
+                        );
+                        await database.updateUser(updatedUser);
+                        widget.onNext(selectedAgeGroup!);
+                      }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -232,7 +232,8 @@ class _AgeSelectPageState extends State<AgeSelectPage> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5244F3),
-                    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 60, vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -250,7 +251,6 @@ class _AgeSelectPageState extends State<AgeSelectPage> {
             ),
           ),
           //end of navigation buttons
-
         ],
       ),
     );

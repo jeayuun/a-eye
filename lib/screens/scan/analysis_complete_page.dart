@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'package:a_eye/database/app_database.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive/hive.dart';
-import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class AnalyzedPage extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -17,41 +18,57 @@ class _AnalyzedPageState extends State<AnalyzedPage> {
   @override
   void initState() {
     super.initState();
+    _scheduleAnalysisCompletion();
+  }
 
+  void _scheduleAnalysisCompletion() {
     Future.delayed(const Duration(seconds: 2), () async {
-      final userBox = Hive.box('userBox');
-      final userName = userBox.get('name') ?? 'Guest';
+      if (!mounted) return;
 
-      final scanBox = Hive.box('scanResultsBox');
-      final String? imagePath = scanBox.get('latestImagePath');
+      final database = Provider.of<AppDatabase>(context, listen: false);
 
-      final bool isMature = DateTime.now().millisecondsSinceEpoch % 2 == 0;
+      // The image path should be passed via arguments from the crop page
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final imagePath = args?['imagePath'] as String?;
+
+      // Get the most recent user to associate the scan with
+      final user = await database.getLatestUser();
+
+      if (user == null || imagePath == null) {
+        print("Error: Could not find user or image path to save scan.");
+        if (mounted) Navigator.pop(context);
+        return;
+      }
+
+      // Determine the result randomly (as in the original code)
+      final isMature = DateTime.now().millisecondsSinceEpoch % 2 == 0;
       final resultTitle = isMature ? 'Mature Cataract' : 'Immature Cataract';
 
-      final List existingResults = scanBox.get('results', defaultValue: []).cast<Map>();
-
-      final newResult = {
-        'date': DateFormat('MMMM d, y, h:mm a').format(
-          DateTime.now().toUtc().add(const Duration(hours: 8)),
-        ),
-        'title': resultTitle,
-        'imagePath': imagePath,
-      };
-
-      existingResults.insert(0, newResult);
-      await scanBox.put('results', existingResults);
-
-      // Navigate to correct result page
-      Navigator.pushNamed(
-        context,
-        isMature ? '/mature' : '/immature',
-        arguments: {'name': userName},
+      // Create a new scan record using Drift
+      final newScan = ScansCompanion(
+        userId: drift.Value(user.id),
+        result: drift.Value(resultTitle),
+        imagePath: drift.Value(imagePath),
+        timestamp: drift.Value(DateTime.now()),
       );
+
+      // Insert the scan into the database
+      await database.insertScan(newScan);
+
+      // Navigate to the appropriate result page
+      if (mounted) {
+        Navigator.pushReplacementNamed(
+          context,
+          isMature ? '/mature' : '/immature',
+          arguments: {'name': user.name},
+        );
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // The UI of this page remains the same
     return Scaffold(
       backgroundColor: const Color(0xFF161616),
       body: Column(

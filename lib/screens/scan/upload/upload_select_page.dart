@@ -3,7 +3,7 @@ import 'package:a_eye/screens/scan/upload/upload_crop_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:hive/hive.dart';
+// REMOVED: import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
 class SelectPage extends StatefulWidget {
@@ -20,18 +20,20 @@ class _SelectPageState extends State<SelectPage> {
 
   Future<void> _pickAndSaveImage() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+    await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       final File imageFile = File(pickedFile.path);
 
       // Save a copy to app directory
       final appDir = await getApplicationDocumentsDirectory();
-      final savedImage = await imageFile.copy('${appDir.path}/${DateTime.now().millisecondsSinceEpoch}.png');
+      final savedImage = await imageFile.copy(
+          '${appDir.path}/${DateTime.now().millisecondsSinceEpoch}.png');
 
-      // Save path to Hive
-      final scanBox = Hive.box('scanResultsBox');
-      await scanBox.put('latestImagePath', savedImage.path);
+      // REMOVED HIVE LOGIC
+      // final scanBox = Hive.box('scanResultsBox');
+      // await scanBox.put('latestImagePath', savedImage.path);
 
       setState(() {
         _selectedImage = savedImage;
@@ -53,6 +55,7 @@ class _SelectPageState extends State<SelectPage> {
 
   @override
   Widget build(BuildContext context) {
+    // The build method remains unchanged...
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -80,8 +83,10 @@ class _SelectPageState extends State<SelectPage> {
                   onPressed: _pickAndSaveImage,
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF5244F3), width: 2),
-                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 50, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
                   ),
                   child: Text(
                     "Upload Image",

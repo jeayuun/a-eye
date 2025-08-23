@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:crop_your_image/crop_your_image.dart';
-import 'package:hive/hive.dart';
+// REMOVED: import 'package:hive/hive.dart';
 import 'dart:typed_data';
 
 class CropPage extends StatefulWidget {
@@ -42,12 +42,13 @@ class _CropPageState extends State<CropPage> {
   }
 
   void _onCropped(Uint8List croppedData) async {
-    final tempPath = '${Directory.systemTemp.path}/cropped_image_${DateTime.now().millisecondsSinceEpoch}.png';
+    final tempPath =
+        '${Directory.systemTemp.path}/cropped_image_${DateTime.now().millisecondsSinceEpoch}.png';
     final croppedFile = await File(tempPath).writeAsBytes(croppedData);
 
-    // Save to Hive
-    final box = Hive.box('scanResultsBox');
-    await box.put('latestImagePath', croppedFile.path);
+    // REMOVED HIVE LOGIC: Path is passed via arguments below.
+    // final box = Hive.box('scanResultsBox');
+    // await box.put('latestImagePath', croppedFile.path);
 
     if (mounted) {
       Navigator.pushNamed(context, '/analyzing', arguments: {
@@ -58,6 +59,7 @@ class _CropPageState extends State<CropPage> {
 
   @override
   Widget build(BuildContext context) {
+    // The build method remains unchanged...
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
@@ -89,12 +91,14 @@ class _CropPageState extends State<CropPage> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Icon(Icons.remove_red_eye_outlined, color: Colors.white),
+                      const Icon(Icons.remove_red_eye_outlined,
+                          color: Colors.white),
                       Expanded(
                         child: Text(
                           "Drag, zoom, and position your eye within the guide.",
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.urbanist(fontSize: 17, color: Colors.white),
+                          style: GoogleFonts.urbanist(
+                              fontSize: 17, color: Colors.white),
                         ),
                       ),
                     ],
@@ -115,17 +119,17 @@ class _CropPageState extends State<CropPage> {
                     image: _imageData,
                     controller: _cropController,
                     onCropped: _onCropped,
-                    interactive: true, // Allows user interaction for image panning/zooming
-                    fixArea: true, // Fixed crop area - cannot be resized
-                    aspectRatio: 1, // Maintains square aspect ratio
-                    withCircleUi: false, // Keep rectangular crop area
+                    interactive: true,
+                    fixArea: true,
+                    aspectRatio: 1,
+                    withCircleUi: false,
                     baseColor: Colors.black,
                     maskColor: Colors.black.withOpacity(0.6),
-                    radius: 8, // Rounded corners for crop area
-                    initialSize: 1, // Fixed size of crop area
-                    initialArea: null, // Let the widget determine initial position
-                    // Remove corner handles by returning empty container
-                    cornerDotBuilder: (size, edgeAlignment) => const SizedBox.shrink(),
+                    radius: 8,
+                    initialSize: 1,
+                    initialArea: null,
+                    cornerDotBuilder: (size, edgeAlignment) =>
+                    const SizedBox.shrink(),
                   ),
                   // Custom crosshair overlay - ignore pointer events
                   Positioned.fill(
@@ -167,13 +171,19 @@ class _CropPageState extends State<CropPage> {
                 OutlinedButton(
                   onPressed: widget.onBack,
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF5244F3), width: 2),
-                    padding: const EdgeInsets.symmetric(horizontal: 95, vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    side:
+                    const BorderSide(color: Color(0xFF5244F3), width: 2),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 95, vertical: 18),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
                   ),
                   child: Text(
                     "Re-Upload Image",
-                    style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: GoogleFonts.urbanist(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -197,8 +207,10 @@ class _CropPageState extends State<CropPage> {
                   backgroundColor: _imageReady && !_isCropping
                       ? const Color(0xFF5244F3)
                       : Colors.grey,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -241,7 +253,7 @@ class _CropPageState extends State<CropPage> {
     );
   }
 }
-
+// ... (CrosshairPainter remains the same)
 class CrosshairPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

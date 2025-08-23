@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive/hive.dart';
+// REMOVED: import 'package:hive/hive.dart';
 import 'dart:io';
-import 'package:url_launcher/url_launcher.dart'; //  for url launcher
+import 'package:url_launcher/url_launcher.dart';
 
 class MaturePage extends StatelessWidget {
   final VoidCallback onNext;
@@ -13,14 +13,16 @@ class MaturePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final box = Hive.box('scanResultsBox');
-    final String? imagePath = box.get('latestImagePath');
+
+    // Get the image path from the navigation arguments
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final imagePath = args?['imagePath'] as String?;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Background
+          // Background and other UI remains the same...
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -56,15 +58,16 @@ class MaturePage extends StatelessWidget {
                   context: context,
                   removeTop: true,
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-
                         // Main Message Box (Contains Red Sign Text and Image)
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.fromLTRB(32, 20, 32, 20), // LEFT TOP RIGHT BOTTOM
+                          padding: const EdgeInsets.fromLTRB(
+                              32, 20, 32, 20), // LEFT TOP RIGHT BOTTOM
                           decoration: BoxDecoration(
                             color: const Color(0xFF161616),
                             borderRadius: BorderRadius.circular(16),
@@ -72,11 +75,11 @@ class MaturePage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-
                               // RED SIGN TEXT BOX
                               Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4), // LEFT TOP RIGHT BOTTOM
+                                padding: const EdgeInsets.fromLTRB(
+                                    8, 4, 8, 4), // LEFT TOP RIGHT BOTTOM
                                 decoration: BoxDecoration(
                                   color: const Color(0x26FF6767), // red with opacity
                                   borderRadius: BorderRadius.circular(24),
@@ -90,7 +93,8 @@ class MaturePage extends StatelessWidget {
                                       color: Color(0xFFDD0000),
                                       size: 28,
                                     ),
-                                    const SizedBox(width: 4), // distance between icon and text
+                                    const SizedBox(
+                                        width: 4), // distance between icon and text
 
                                     // Alert Text
                                     Expanded(
@@ -106,7 +110,7 @@ class MaturePage extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                              ),// end of red sign text box
+                              ), // end of red sign text box
                               const SizedBox(height: 12),
 
                               RichText(
@@ -123,7 +127,8 @@ class MaturePage extends StatelessWidget {
                                         "The scanned eye shows characteristics of a mature cataract. Due to high lens opacity, "),
                                     TextSpan(
                                       text: "surgical removal is recommended",
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     TextSpan(
                                         text:
@@ -136,31 +141,31 @@ class MaturePage extends StatelessWidget {
                               //IMAGE INSIDE THE BOX
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(15.0),
-                                child: imagePath != null
+                                child: imagePath != null && File(imagePath).existsSync()
                                     ? Image.file(
                                   File(imagePath),
                                   width: screenWidth * 0.5,
                                   height: screenWidth * 0.5,
                                   fit: BoxFit.cover,
                                 )
-                                    : Image.asset( // fallback if image isn't available
+                                    : Image.asset(
+                                  // fallback if image isn't available
                                   'assets/images/Immature.png',
                                   width: screenWidth * 0.5,
                                   height: screenWidth * 0.5,
                                   fit: BoxFit.cover,
                                 ),
                               ),
-
                             ],
                           ),
                         ),
                         const SizedBox(height: 16),
 
-
                         // SECOND BOX: MEDICAL DISCLAIMER BOX
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.fromLTRB(32, 10, 32, 10), // LEFT TOP RIGHT BOTTOM // 32 left and right always
+                          padding: const EdgeInsets.fromLTRB(32, 10, 32,
+                              10), // LEFT TOP RIGHT BOTTOM // 32 left and right always
                           decoration: BoxDecoration(
                             color: const Color(0xFF131A21),
                             borderRadius: BorderRadius.circular(16),
@@ -193,7 +198,8 @@ class MaturePage extends StatelessWidget {
                                     TextSpan(
                                       text:
                                       "not replace a licensed ophthalmologist’s diagnosis.",
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 ),
@@ -201,10 +207,10 @@ class MaturePage extends StatelessWidget {
                               const SizedBox(height: 16),
 
                               // VISIT PAO ORG TEXT BOX
-                              // VISIT PAO ORG TEXT BOX (Matching Red Sign Style)
                               Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                                padding:
+                                const EdgeInsets.fromLTRB(12, 12, 12, 12),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF242443), // BOX BACKGROUND
                                   borderRadius: BorderRadius.circular(24),
@@ -236,7 +242,8 @@ class MaturePage extends StatelessWidget {
                                               ),
                                             ),
                                             TextSpan(
-                                              text: " to find certified eye specialists for proper eye analysis.",
+                                              text:
+                                              " to find certified eye specialists for proper eye analysis.",
                                             ),
                                           ],
                                         ),
@@ -244,8 +251,7 @@ class MaturePage extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                              ),//END OF PAO ORG BOX
-
+                              ), //END OF PAO ORG BOX
                             ],
                           ),
                         ),
@@ -260,7 +266,8 @@ class MaturePage extends StatelessWidget {
                                 onPressed: () async {
                                   const url = 'https://pao.org.ph';
                                   if (await canLaunchUrl(Uri.parse(url))) {
-                                    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                                    await launchUrl(Uri.parse(url),
+                                        mode: LaunchMode.externalApplication);
                                   } else {
                                     throw 'Could not launch $url';
                                   }
@@ -270,7 +277,8 @@ class MaturePage extends StatelessWidget {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 14), //PADDING
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 14), //PADDING
                                 ),
                                 child: Text(
                                   "Notify Eye Specialist",
@@ -289,11 +297,13 @@ class MaturePage extends StatelessWidget {
                               child: OutlinedButton(
                                 onPressed: onNext,
                                 style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Color(0xFF5244F3), width: 2),
+                                  side: const BorderSide(
+                                      color: Color(0xFF5244F3), width: 2),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 14), //PADDING
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 14), //PADDING
                                 ),
                                 child: Text(
                                   "Confirm & Exit Report",

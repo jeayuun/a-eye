@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive/hive.dart';
+// REMOVED: import 'package:hive/hive.dart';
 import 'dart:io';
 
 class ImmaturePage extends StatelessWidget {
@@ -12,14 +12,16 @@ class ImmaturePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final box = Hive.box('scanResultsBox');
-    final String? imagePath = box.get('latestImagePath');
+
+    // Get the image path from the navigation arguments
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final imagePath = args?['imagePath'] as String?;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Background
+          // Background and other UI...
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -56,15 +58,16 @@ class ImmaturePage extends StatelessWidget {
                   context: context,
                   removeTop: true,
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-
                         // Main Message Box (Contains Red Sign Text and Image)
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.fromLTRB(32, 20, 32, 20), // LEFT TOP RIGHT BOTTOM
+                          padding: const EdgeInsets.fromLTRB(
+                              32, 20, 32, 20), // LEFT TOP RIGHT BOTTOM
                           decoration: BoxDecoration(
                             color: const Color(0xFF161616),
                             borderRadius: BorderRadius.circular(16),
@@ -72,13 +75,14 @@ class ImmaturePage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-
                               // YELLOW SIGN TEXT BOX
                               Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4), // LEFT TOP RIGHT BOTTOM
+                                padding: const EdgeInsets.fromLTRB(
+                                    8, 4, 8, 4), // LEFT TOP RIGHT BOTTOM
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF362D1A), // yellow brown mukhang tae background
+                                  color: const Color(
+                                      0xFF362D1A), // yellow brown mukhang tae background
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: Row(
@@ -98,7 +102,7 @@ class ImmaturePage extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                              ),// end of red sign text box
+                              ), // end of red sign text box
                               const SizedBox(height: 12),
 
                               RichText(
@@ -115,7 +119,8 @@ class ImmaturePage extends StatelessWidget {
                                         "The uploaded eye image exhibits characteristics consistent with an immature cataract. "),
                                     TextSpan(
                                       text: "Constant monitoring ",
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     TextSpan(
                                         text:
@@ -128,21 +133,21 @@ class ImmaturePage extends StatelessWidget {
                               //IMAGE INSIDE THE BOX
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(15.0),
-                                child: imagePath != null
+                                child: imagePath != null && File(imagePath).existsSync()
                                     ? Image.file(
                                   File(imagePath),
                                   width: screenWidth * 0.5,
                                   height: screenWidth * 0.5,
                                   fit: BoxFit.cover,
                                 )
-                                    : Image.asset( // fallback if image isn't available
+                                    : Image.asset(
+                                  // fallback if image isn't available
                                   'assets/images/Immature.png',
                                   width: screenWidth * 0.5,
                                   height: screenWidth * 0.5,
                                   fit: BoxFit.cover,
                                 ),
                               ),
-
                             ],
                           ),
                         ),
@@ -151,7 +156,8 @@ class ImmaturePage extends StatelessWidget {
                         // SECOND BOX: MEDICAL DISCLAIMER BOX
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.fromLTRB(32, 10, 32, 10), // LEFT TOP RIGHT BOTTOM // 32 left and right always
+                          padding: const EdgeInsets.fromLTRB(32, 10, 32,
+                              10), // LEFT TOP RIGHT BOTTOM // 32 left and right always
                           decoration: BoxDecoration(
                             color: const Color(0xFF131A21),
                             borderRadius: BorderRadius.circular(16),
@@ -184,7 +190,8 @@ class ImmaturePage extends StatelessWidget {
                                     TextSpan(
                                       text:
                                       "not replace a licensed ophthalmologist’s diagnosis.",
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 ),
@@ -192,10 +199,10 @@ class ImmaturePage extends StatelessWidget {
                               const SizedBox(height: 16),
 
                               // VISIT PAO ORG TEXT BOX
-                              // VISIT PAO ORG TEXT BOX (Matching Red Sign Style)
                               Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                                padding:
+                                const EdgeInsets.fromLTRB(12, 12, 12, 12),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF242443), // BOX BACKGROUND
                                   borderRadius: BorderRadius.circular(24),
@@ -227,7 +234,8 @@ class ImmaturePage extends StatelessWidget {
                                               ),
                                             ),
                                             TextSpan(
-                                              text: " to find certified eye specialists for proper eye analysis.",
+                                              text:
+                                              " to find certified eye specialists for proper eye analysis.",
                                             ),
                                           ],
                                         ),
@@ -235,8 +243,7 @@ class ImmaturePage extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                              ),//END OF PAO ORG BOX
-
+                              ), //END OF PAO ORG BOX
                             ],
                           ),
                         ),
@@ -250,11 +257,13 @@ class ImmaturePage extends StatelessWidget {
                               child: OutlinedButton(
                                 onPressed: onNext,
                                 style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Color(0xFF5244F3), width: 2),
+                                  side: const BorderSide(
+                                      color: Color(0xFF5244F3), width: 2),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 14), //PADDING
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 14), //PADDING
                                 ),
                                 child: Text(
                                   "Confirm & Exit Report",

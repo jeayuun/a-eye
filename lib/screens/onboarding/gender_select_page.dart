@@ -1,5 +1,8 @@
+import 'package:a_eye/database/app_database.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class GenderSelectPage extends StatefulWidget {
   final void Function(String gender) onNext;
@@ -62,15 +65,15 @@ class _GenderSelectPageState extends State<GenderSelectPage> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
+    final database = Provider.of<AppDatabase>(context, listen: false);
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Glowing circles
+          // Glowing circles and other UI elements...
           Positioned(
             top: -500,
             right: -500,
@@ -107,7 +110,6 @@ class _GenderSelectPageState extends State<GenderSelectPage> {
               ),
             ),
           ),
-
 
           // Content nung gender radio buttons
           Padding(
@@ -174,7 +176,6 @@ class _GenderSelectPageState extends State<GenderSelectPage> {
               ],
             ),
           ),
-
           // Navigation buttons
           Positioned(
             bottom: 40,
@@ -183,7 +184,6 @@ class _GenderSelectPageState extends State<GenderSelectPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-
                 OutlinedButton(
                   onPressed: () {
                     if (selectedGender != null) {
@@ -194,7 +194,8 @@ class _GenderSelectPageState extends State<GenderSelectPage> {
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF5244F3), width: 2),
-                    padding: const EdgeInsets.symmetric(horizontal: 53, vertical: 16),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 53, vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -208,12 +209,19 @@ class _GenderSelectPageState extends State<GenderSelectPage> {
                     ),
                   ),
                 ),
-
-
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (selectedGender != null) {
-                      widget.onNext(selectedGender!);
+                      // Get the most recent user
+                      final user = await database.getLatestUser();
+                      if (user != null) {
+                        // Create a companion to update the user record
+                        final updatedUser = user.toCompanion(false).copyWith(
+                          gender: drift.Value(selectedGender!),
+                        );
+                        await database.updateUser(updatedUser);
+                        widget.onNext(selectedGender!);
+                      }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -225,7 +233,8 @@ class _GenderSelectPageState extends State<GenderSelectPage> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5244F3),
-                    padding: const EdgeInsets.symmetric(horizontal: 63, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 63, vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -239,12 +248,10 @@ class _GenderSelectPageState extends State<GenderSelectPage> {
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
           //end of navigation buttons
-
         ],
       ),
     );

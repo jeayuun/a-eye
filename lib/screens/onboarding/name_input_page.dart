@@ -1,6 +1,8 @@
+import 'package:a_eye/database/app_database.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
 
 class NameInputPage extends StatefulWidget {
   final void Function(String name) onNext;
@@ -22,7 +24,6 @@ class _NameInputPageState extends State<NameInputPage> {
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _controller = TextEditingController();
 
-  //makes sure that the name is still there when going back the page
   @override
   void initState() {
     super.initState();
@@ -43,11 +44,14 @@ class _NameInputPageState extends State<NameInputPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Access the database instance using Provider
+    final database = Provider.of<AppDatabase>(context, listen: false);
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Glowing circles
+          // UI Elements (Glowing circles, etc.)...
           Positioned(
             top: -500,
             right: -500,
@@ -85,7 +89,7 @@ class _NameInputPageState extends State<NameInputPage> {
             ),
           ),
 
-          // THREE BAR STEP INDICATOR SA TAAS
+          // Step indicator...
           Padding(
             padding: const EdgeInsets.only(top: 60.0),
             child: Row(
@@ -123,8 +127,7 @@ class _NameInputPageState extends State<NameInputPage> {
           ),
           const SizedBox(height: 40),
 
-
-          // Content question ung whats your name
+          // Content...
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30.0),
             child: Column(
@@ -142,7 +145,7 @@ class _NameInputPageState extends State<NameInputPage> {
                   controller: _controller,
                   focusNode: _focusNode,
                   autofocus: true,
-                  maxLength: 20, //limit to 20 char only
+                  maxLength: 20,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: 'Enter your name',
@@ -164,7 +167,7 @@ class _NameInputPageState extends State<NameInputPage> {
             ),
           ),
 
-          // Navigation buttons
+          // Navigation buttons...
           Positioned(
             bottom: 40,
             left: 30,
@@ -176,7 +179,8 @@ class _NameInputPageState extends State<NameInputPage> {
                   onPressed: widget.onBack,
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF5244F3), width: 2),
-                    padding: const EdgeInsets.symmetric(horizontal: 53, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 53, vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -191,23 +195,42 @@ class _NameInputPageState extends State<NameInputPage> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    final name = _controller.text.trim();
-                    if (name.isNotEmpty) {
-                      Hive.box('userBox').put('name', name); // Save to Hive ung storage
-                      widget.onNext(name); // Continue to next page
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Please enter your name"),
-                          backgroundColor: Colors.redAccent,
-                        ),
-                      );
-                    }
-                  },
+                    onPressed: () async {
+                      final name = _controller.text.trim();
+                      if (name.isNotEmpty) {
+                        try {
+                          final user = UsersCompanion(
+                            name: drift.Value(name),
+                            gender: drift.Value(''),
+                            ageGroup: drift.Value(''),
+                            createdAt: drift.Value(DateTime.now()),
+                          );
+                          await database.insertUser(user);
+                          widget.onNext(name);
+                        } catch (e) {
+                          // Log the error for debugging
+                          print("Error inserting user: $e");
+                          // Show an error message to the user
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("An error occurred: $e"),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Please enter your name"),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                      }
+                    },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5244F3),
-                    padding: const EdgeInsets.symmetric(horizontal: 63, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 63, vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -221,12 +244,9 @@ class _NameInputPageState extends State<NameInputPage> {
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
-
-
         ],
       ),
     );

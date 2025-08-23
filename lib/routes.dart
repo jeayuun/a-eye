@@ -127,19 +127,16 @@ final Map<String, WidgetBuilder> appRoutes = {
   ),
 
   // Scan Capture
-  '/camera': (context) => const CameraPage(
-  ),
+  '/camera': (context) => const CameraPage(),
 
-  // NEW: Image processing route that handles the random logic
   '/processImage': (context) {
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final String imagePath = args?['imagePath'] ?? '';
     final String selectedEye = args?['selectedEye'] ?? 'Left';
 
-    // Random logic moved here from camera page
     final random = DateTime.now().millisecondsSinceEpoch % 2;
 
-    // Navigate immediately to either crop or invalid
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (random == 0) {
         Navigator.pushReplacementNamed(
@@ -162,7 +159,6 @@ final Map<String, WidgetBuilder> appRoutes = {
       }
     });
 
-    // Return a loading screen while navigation happens
     return const Scaffold(
       backgroundColor: Color(0xFF131A21),
       body: Center(
@@ -174,68 +170,55 @@ final Map<String, WidgetBuilder> appRoutes = {
   },
 
   '/crop': (context) {
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final String imagePath = args?['imagePath'] ?? '';
-    final String selectedEye = args?['selectedEye'] ?? 'Left';
 
     return CropPage(
       imagePath: imagePath,
       onNext: () {
-        // Navigate to analyzing page after cropping
-        Navigator.pushNamed(context, '/analyzing');
+        // Pass the image path to the analyzing page
+        Navigator.pushNamed(context, '/analyzing',
+            arguments: {'imagePath': imagePath});
       },
       onBack: () {
-        // Go back to camera page
         Navigator.popUntil(context, ModalRoute.withName('/camera'));
       },
     );
   },
 
   '/invalid': (context) {
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final String imagePath = args?['imagePath'] ?? '';
-    final String selectedEye = args?['selectedEye'] ?? 'Left';
 
     return InvalidPage(
       imagePath: imagePath,
       onBack: () {
-        // Go back to camera page
         Navigator.popUntil(context, ModalRoute.withName('/camera'));
       },
     );
   },
 
   '/analyzing': (context) => AnalyzingPage(
-    onComplete: () => Navigator.pushNamed(context, '/complete'),
+    onComplete: () {
+      // Pass arguments from analyzing to the complete page
+      final args = ModalRoute.of(context)?.settings.arguments;
+      Navigator.pushNamed(context, '/complete', arguments: args);
+    },
   ),
 
   '/complete': (context) {
-    final args = ModalRoute.of(context)?.settings.arguments as Map?;
-    final userName = args?['name'] ?? 'Guest';
-
-    return AnalyzedPage(
-      onComplete: () {
-        final random = DateTime.now().millisecondsSinceEpoch % 2;
-        if (random == 0) {
-          Navigator.pushNamed(
-            context,
-            '/mature',
-            arguments: {'name': userName},
-          );
-        } else {
-          Navigator.pushNamed(
-            context,
-            '/immature',
-            arguments: {'name': userName},
-          );
-        }
-      },
-    );
+    // The primary purpose is now to show the "Analysis Completed" screen.
+    // Navigation logic is now inside AnalyzedPage.
+    return const AnalyzedPage();
   },
 
   '/mature': (context) {
-    final args = ModalRoute.of(context)?.settings.arguments;
-    final userName = (args is Map && args.containsKey('name')) ? args['name'] : 'Guest';
+    // Correctly parse arguments as a Map
+    final args =
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final userName = args?['name'] ?? 'Guest';
 
     return MaturePage(
       onNext: () => Navigator.pushAndRemoveUntil(
@@ -252,8 +235,10 @@ final Map<String, WidgetBuilder> appRoutes = {
   },
 
   '/immature': (context) {
-    final args = ModalRoute.of(context)?.settings.arguments;
-    final userName = (args is Map && args.containsKey('name')) ? args['name'] : 'Guest';
+    // Correctly parse arguments as a Map
+    final args =
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final userName = args?['name'] ?? 'Guest';
 
     return ImmaturePage(
       onNext: () => Navigator.pushAndRemoveUntil(
@@ -272,17 +257,13 @@ final Map<String, WidgetBuilder> appRoutes = {
   // Upload Flow
   '/uploadSelect': (context) => SelectPage(
     onNext: () {
-      final random = DateTime.now().millisecondsSinceEpoch % 2;
-      if (random == 0) {
-        Navigator.pushNamed(context, '/uploadInvalid');
-      } else {
-        Navigator.pushNamed(context, '/uploadCrop');
-      }
+      // This onNext is handled inside the SelectPage widget itself
     },
   ),
 
   '/uploadCrop': (context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final args =
+    ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return UploadCropPage(
       imagePath: args['imagePath'],
       onNext: args['onNext'],

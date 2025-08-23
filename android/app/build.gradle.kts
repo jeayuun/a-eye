@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.a_eye"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = "29.0.13599879"
 
     compileOptions {
@@ -18,6 +18,11 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
+
+    packagingOptions {
+        pickFirst("lib/**/libsqlite3.so")
+    }
+
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).

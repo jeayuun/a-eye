@@ -1,14 +1,13 @@
+import 'package:a_eye/database/app_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive/hive.dart';
 import 'package:a_eye/widgets/result_card.dart';
-import 'dart:io';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
-
-class WelcomeScreenWithResult extends StatelessWidget {
+class WelcomeScreenWithResult extends StatefulWidget {
   final VoidCallback onNext;
   final String userName;
-
 
   const WelcomeScreenWithResult({
     super.key,
@@ -17,14 +16,38 @@ class WelcomeScreenWithResult extends StatelessWidget {
   });
 
   @override
+  State<WelcomeScreenWithResult> createState() =>
+      _WelcomeScreenWithResultState();
+}
+
+class _WelcomeScreenWithResultState extends State<WelcomeScreenWithResult> {
+  late Future<List<Scan>> _scanHistoryFuture;
+  User? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    final database = Provider.of<AppDatabase>(context, listen: false);
+    // Initialize the future that fetches the user and their scans
+    _scanHistoryFuture = _fetchScanHistory(database);
+  }
+
+  // Helper method to fetch data
+  Future<List<Scan>> _fetchScanHistory(AppDatabase database) async {
+    // First, get the latest user
+    _currentUser = await database.getLatestUser();
+    if (_currentUser != null) {
+      // Then, get the scans for that user
+      return database.getScansForUser(_currentUser!.id);
+    }
+    // Return an empty list if no user is found
+    return [];
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final userBox = Hive.box('userBox');
-    final fallbackName = Hive.box('userBox').get('name', defaultValue: 'Guest');
-    final hiveName = userBox.get('name', defaultValue: '').toString();
-    final displayName = hiveName.isNotEmpty ? hiveName : userName;
-    final box = Hive.box('scanResultsBox');
-    final String? imagePath = box.get('latestImagePath');
-    final List results = box.get('results', defaultValue: []);
+    // No need to access the database here directly anymore
+    // We will use the FutureBuilder to handle the data
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -37,10 +60,9 @@ class WelcomeScreenWithResult extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-
         child: Stack(
           children: [
-            // Top icons
+            // Top icons and other UI...
             SafeArea(
               child: Stack(
                 children: [
@@ -54,7 +76,8 @@ class WelcomeScreenWithResult extends StatelessWidget {
                       height: 48,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Icons.menu, color: Colors.white, size: 28);
+                        return const Icon(Icons.menu,
+                            color: Colors.white, size: 28);
                       },
                     ),
                   ),
@@ -70,7 +93,8 @@ class WelcomeScreenWithResult extends StatelessWidget {
                         'assets/images/A-Eye Icon.png',
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.info_outline, color: Colors.white, size: 28);
+                          return const Icon(Icons.info_outline,
+                              color: Colors.white, size: 28);
                         },
                       ),
                     ),
@@ -78,18 +102,18 @@ class WelcomeScreenWithResult extends StatelessWidget {
                 ],
               ),
             ),
-
             // Main content
             Align(
-              alignment: const Alignment(0.0, 0.5),// horizontal then vertical
+              alignment: const Alignment(0.0, 0.5), // horizontal then vertical
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row( // <--- Wrap the Text widgets in a Row
-                      mainAxisSize: MainAxisSize.min, // Essential: Makes the Row take only the space its children need horizontally
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Flexible(
                           child: Text.rich(
@@ -101,8 +125,10 @@ class WelcomeScreenWithResult extends StatelessWidget {
                               children: [
                                 const TextSpan(text: "Welcome Back, "),
                                 TextSpan(
-                                  text: displayName,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  // Use the fetched user name or the passed argument as a fallback
+                                  text: _currentUser?.name ?? widget.userName,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
                                 ),
                                 const TextSpan(text: "!"),
                               ],
@@ -116,9 +142,10 @@ class WelcomeScreenWithResult extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // Outer box
+                    // Outer box...
                     Container(
-                      padding: const EdgeInsets.fromLTRB(22, 12, 22, 16), // LEFT TOP RIGHT BOTTOM
+                      padding: const EdgeInsets.fromLTRB(
+                          22, 12, 22, 16), // LEFT TOP RIGHT BOTTOM
                       decoration: BoxDecoration(
                         color: Colors.white12.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
@@ -156,7 +183,7 @@ class WelcomeScreenWithResult extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16), //spacing lang to
+                    const SizedBox(height: 16),
 
                     Text(
                       "Your Eye Health History",
@@ -166,50 +193,63 @@ class WelcomeScreenWithResult extends StatelessWidget {
                         color: const Color(0XFF5244F3),
                       ),
                     ),
-                    const SizedBox(height: 16), //spacing lang to
+                    const SizedBox(height: 16),
 
                     // Results box container
                     Container(
                       width: double.infinity,
-                      height: 300, // fixed height regardless of item count
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16), // LEFT TOP RIGHT BOTTOM
+                      height: 300,
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                       decoration: BoxDecoration(
                         color: const Color(0xFF131A21),
                         borderRadius: BorderRadius.circular(24),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                      child: FutureBuilder<List<Scan>>(
+                        future: _scanHistoryFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(
+                                child:
+                                Text('Error: ${snapshot.error}'));
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.isEmpty) {
+                            return const Center(
+                                child: Text('No scan history found.', style: TextStyle(color: Colors.white),));
+                          }
 
-                          // Scrollable list of results
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: results.length,
-                              padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
-                              itemBuilder: (context, index) {
-                                final result = results[index];
-                                return ResultCard(
-                                  date: result['date'] ?? '',
-                                  title: result['title'] ?? '',
-                                  imageFilePath: result['imagePath'],
-                                  showLabel: index == 0, // show "Most Recent" for top card only
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+                          final results = snapshot.data!;
+                          return ListView.builder(
+                            itemCount: results.length,
+                            padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
+                            itemBuilder: (context, index) {
+                              final result = results[index];
+                              return ResultCard(
+                                // Format the DateTime object
+                                date: DateFormat('MMMM d, y, h:mm a').format(result.timestamp),
+                                title: result.result,
+                                imageFilePath: result.imagePath,
+                                showLabel: index == 0,
+                              );
+                            },
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 32),
 
-                    // start eye scan na button
+                    // start eye scan button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: onNext,
+                        onPressed: widget.onNext,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF5244F3),
-                          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12), // size ng button
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 28, vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -226,7 +266,7 @@ class WelcomeScreenWithResult extends StatelessWidget {
                                 fit: BoxFit.contain,
                               ),
                             ),
-                            const SizedBox(width: 12), // distance of icon with text
+                            const SizedBox(width: 12),
                             Text(
                               "Start Eye Scan",
                               style: GoogleFonts.urbanist(
@@ -239,8 +279,6 @@ class WelcomeScreenWithResult extends StatelessWidget {
                         ),
                       ),
                     )
-
-
                   ],
                 ),
               ),

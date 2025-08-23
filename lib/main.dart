@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'routes.dart'; // Route definitions
+import 'package:provider/provider.dart';
+import 'routes.dart';
+import 'database/app_database.dart';
+import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
 
-Future<void> main() async {
+// Create a global instance of the database
+late AppDatabase database;
+
+void main() async{
+  // Initialize the database
+  database = AppDatabase();
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive with Flutter support
-  await Hive.initFlutter();
-
-  // Open Hive boxes (add error handling if desired)
-  await Future.wait([
-    Hive.openBox('userBox'),
-    Hive.openBox('scanResultsBox'),
-  ]);
-
-  runApp(const MyApp());
+  // Run the app, providing the database instance to the widget tree
+  runApp(
+    Provider<AppDatabase>(
+      create: (context) => database,
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

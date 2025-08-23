@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
-import 'package:hive/hive.dart';
 
 class AnalyzingPage extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -17,23 +15,6 @@ class _AnalyzingPageState extends State<AnalyzingPage> {
   String animatedText = "Analyzing";
   int dotCount = 0;
   Timer? _dotTimer;
-  Timer? _navigateTimer;
-  bool _completed = false;
-
-  void saveResultToHive(String imagePath, String resultTitle) async {
-    final box = Hive.box('scanResultsBox');
-
-    final List existingResults = box.get('results', defaultValue: []).cast<Map>();
-
-    final newResult = {
-      'date': DateFormat('MMMM d, y, h:mm a').format(DateTime.now()),
-      'title': resultTitle, // e.g. "Mature Cataract"
-      'imagePath': imagePath,
-    };
-
-    existingResults.insert(0, newResult); // insert at the top (most recent)
-    await box.put('results', existingResults);
-  }
 
   @override
   void initState() {
@@ -48,17 +29,10 @@ class _AnalyzingPageState extends State<AnalyzingPage> {
       });
     });
 
-    // Go to next page after 3 seconds
-    _navigateTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted && !_completed) {
-        _completed = true;
-
-        // Get image path from arguments
-        final args = ModalRoute.of(context)?.settings.arguments;
-        if (args is String) {
-          saveResultToHive(args, "Mature Cataract"); // or "Immature Cataract"
-        }
-
+    // Navigate to the completion page after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        // The onComplete callback is triggered by the route definition.
         widget.onComplete?.call();
       }
     });
@@ -67,18 +41,17 @@ class _AnalyzingPageState extends State<AnalyzingPage> {
   @override
   void dispose() {
     _dotTimer?.cancel();
-    _navigateTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // The build method remains unchanged...
     return Scaffold(
       backgroundColor: const Color(0xFF161616),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-
           const SizedBox(height: 150), // spacing from top to image
 
           // Image overlayed with Analyzing... text na animated amazing

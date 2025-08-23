@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
-import 'package:hive/hive.dart';
+// REMOVED: import 'package:hive/hive.dart';
 import 'dart:typed_data';
 
 class CameraPage extends StatefulWidget {
@@ -47,14 +47,14 @@ class _CameraPageState extends State<CameraPage> {
         _initializeControllerFuture = _controller!.initialize().then((_) {
           if (mounted) setState(() => _cameraInitialized = true);
         }).catchError((e) {
-          if (mounted) setState(() => _errorMessage = 'Failed to initialize camera');
+          if (mounted)
+            setState(() => _errorMessage = 'Failed to initialize camera');
         });
       });
     } catch (e) {
       if (mounted) setState(() => _errorMessage = 'Camera error: $e');
     }
   }
-
 
   @override
   void dispose() {
@@ -71,12 +71,13 @@ class _CameraPageState extends State<CameraPage> {
       // Save to temp directory
       final File imageFile = File(image.path);
       final tempDir = Directory.systemTemp;
-      final String filename = 'captured_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String filename =
+          'captured_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final File savedImage = await imageFile.copy('${tempDir.path}/$filename');
 
-      // Save path to Hive
-      final box = Hive.box('scanResultsBox');
-      await box.put('latestImagePath', savedImage.path);
+      // REMOVED HIVE LOGIC: The path is passed via arguments below.
+      // final box = Hive.box('scanResultsBox');
+      // await box.put('latestImagePath', savedImage.path);
 
       // Navigate to image processing route with the image path
       Navigator.pushNamed(
@@ -106,6 +107,7 @@ class _CameraPageState extends State<CameraPage> {
 
   @override
   Widget build(BuildContext context) {
+    // The build method remains unchanged...
     return Scaffold(
       backgroundColor: const Color(0xFF131A21), //  dark blue color
       body: Column(
@@ -133,7 +135,6 @@ class _CameraPageState extends State<CameraPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-
                           Text(
                             'Look at the camera lens',
                             style: GoogleFonts.urbanist(
@@ -164,7 +165,6 @@ class _CameraPageState extends State<CameraPage> {
                   right: 0,
                   child: Center(child: _buildEyeSelector()),
                 ),
-
               ],
             ),
           ),
@@ -176,20 +176,21 @@ class _CameraPageState extends State<CameraPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-
                   // Flip Camera Button aligned to right
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(right: 30.0, bottom: 12),
+                        padding:
+                        const EdgeInsets.only(right: 30.0, bottom: 12),
                         child: FloatingActionButton(
                           heroTag: 'flip',
                           elevation: 0,
                           highlightElevation: 0,
                           backgroundColor: const Color(0xFF131A21),
                           onPressed: _flipCamera,
-                          child: const Icon(Icons.cameraswitch_outlined, color: Color(0xFF5244F3)),
+                          child: const Icon(Icons.cameraswitch_outlined,
+                              color: Color(0xFF5244F3)),
                         ),
                       ),
                     ],
@@ -216,7 +217,6 @@ class _CameraPageState extends State<CameraPage> {
               ),
             ),
           ),
-
         ],
       ),
     );
@@ -305,8 +305,7 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 }
-
-//cross hair function
+// ... (CrosshairPainter remains the same)
 class CrosshairPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
