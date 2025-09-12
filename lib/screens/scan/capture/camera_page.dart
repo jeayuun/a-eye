@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
+import 'package:a_eye/image_validator.dart';
 // REMOVED: import 'package:hive/hive.dart';
 import 'dart:typed_data';
 
@@ -63,34 +64,39 @@ class _CameraPageState extends State<CameraPage> {
   }
 
   Future<void> _takePicture() async {
-    if (_controller == null || !_cameraInitialized) return;
+      if (_controller == null || !_cameraInitialized) return;
 
-    try {
-      final XFile image = await _controller!.takePicture();
+      try {
+          final XFile image = await _controller!.takePicture();
+          final File imageFile = File(image.path);
 
-      // Save to temp directory
-      final File imageFile = File(image.path);
-      final tempDir = Directory.systemTemp;
-      final String filename =
-          'captured_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final File savedImage = await imageFile.copy('${tempDir.path}/$filename');
+          // Validate the image
+          final bool isValid = await ImageValidator.isImageValid(imageFile.path);
 
-      // REMOVED HIVE LOGIC: The path is passed via arguments below.
-      // final box = Hive.box('scanResultsBox');
-      // await box.put('latestImagePath', savedImage.path);
-
-      // Navigate to image processing route with the image path
-      Navigator.pushNamed(
-        context,
-        '/processImage',
-        arguments: {
-          'imagePath': savedImage.path,
-          'selectedEye': _selectedEye,
-        },
-      );
-    } catch (e) {
-      if (mounted) setState(() => _errorMessage = 'Capture failed: $e');
-    }
+          if (isValid) {
+              // If the image is valid, proceed to the cropping page
+              Navigator.pushNamed(
+                  context,
+                  '/crop',
+                  arguments: {
+                      'imagePath': imageFile.path,
+                      'selectedEye': _selectedEye,
+                  },
+              );
+          } else {
+              // If the image is invalid, show the invalid image page
+              Navigator.pushNamed(
+                  context,
+                  '/invalid',
+                  arguments: {
+                      'imagePath': imageFile.path,
+                      'selectedEye': _selectedEye,
+                  },
+              );
+          }
+      } catch (e) {
+          if (mounted) setState(() => _errorMessage = 'Capture failed: $e');
+      }
   }
 
   Future<void> _flipCamera() async {
